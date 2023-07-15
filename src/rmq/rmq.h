@@ -75,7 +75,7 @@ uint64_t query_inside_block(uint64_t s, uint64_t e, vector<vector<bool>>& block_
 }
 
 pair<vector<uint64_t>, uint64_t> generate_power_of_two_index_struct(vector<uint64_t>& data) {
-    uint64_t k = floor(log2(data.size()));
+    uint64_t k = ceil(log2(data.size()));
     vector<uint64_t> power_of_two_index_struct(k * data.size());
 
     // Fill the first entry
@@ -93,7 +93,7 @@ pair<vector<uint64_t>, uint64_t> generate_power_of_two_index_struct(vector<uint6
                 uint64_t right_half_min_idx = power_of_two_index_struct[(i + pow(2, j)) * k + j - 1];
                 uint64_t left_half_min_idx = power_of_two_index_struct[i * k + j - 1];
                 if (data[left_half_min_idx] < data[right_half_min_idx]) {
-                    power_of_two_index_struct[i * k + j] = power_of_two_index_struct[i * k + j - 1];
+                    power_of_two_index_struct[i * k + j] = left_half_min_idx;
                 } else {
                     power_of_two_index_struct[i * k + j] = right_half_min_idx;
                 }
@@ -103,14 +103,14 @@ pair<vector<uint64_t>, uint64_t> generate_power_of_two_index_struct(vector<uint6
     return make_pair(power_of_two_index_struct, k);
 }
 
-uint64_t query_blockwise(uint64_t s, uint64_t e, vector<uint64_t> data, pair<vector<uint64_t>, uint64_t>& index_struct) {
+uint64_t query_blockwise(uint64_t s, uint64_t e, vector<uint64_t>& block_mins, pair<vector<uint64_t>, uint64_t>& index_struct) {
     if (e - s <= 1) {
-        return (data[s] < data[e]) ? s : e;
+        return (block_mins[s] < block_mins[e]) ? s : e;
     }
     auto& index = index_struct.first;
     auto k = index_struct.second;
     uint64_t l = floor(log2(e - s));
     auto first = index[s * k + l - 1];
     auto second = index[(e - pow(2, l) + 1) * k + l - 1];
-    return (data[first] < data[second]) ? first : second;
+    return (block_mins[first] < block_mins[second]) ? first : second;
 }
