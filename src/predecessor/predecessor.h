@@ -6,23 +6,33 @@ using namespace std;
 
 struct SelectableBitvector {
     vector<bool> data;
-    vector<uint64_t> table;
+    vector<uint64_t> table_zeros;
+    vector<uint64_t> table_ones;
 
     SelectableBitvector(vector<bool> data) : data(data) {
-        table.resize(data.size());
-
-        uint64_t found = 0;
-        table[0] = 0;
+        table_zeros.emplace_back(0);
+        table_ones.emplace_back(0);
         for (uint64_t i = 0; i < data.size(); ++i) {
             if (!data[i]) {
-                ++found;
-                table[found] = i + 1;
+                table_zeros.emplace_back(i + 1);
+            } else {
+                table_ones.emplace_back(i + 1);
             }
         }
     }
 
     uint64_t select_zero(uint64_t x) {
-        return table[x];
+        if (x >= table_zeros.size()) {
+            return UINT64_MAX;
+        }
+        return table_zeros[x];
+    }
+
+    uint64_t select_one(uint64_t x) {
+        if (x >= table_zeros.size()) {
+            return UINT64_MAX;
+        }
+        return table_ones[x];
     }
 };
 
@@ -37,9 +47,13 @@ struct EliasFanoCoded {
         uint64_t x_lower = x & ((static_cast<uint64_t>(1) << lower_width) - 1);
         uint64_t p_candidate = upper.select_zero(x_upper);
         uint64_t range_high = upper.select_zero(x_upper + 1);
-        if (p_candidate - range_high == 1 || range_high == UINT64_MAX) {
-            // No elements in the block
-            return (p_candidate - x_upper - 1);
+        if (range_high - p_candidate == 1 || range_high == UINT64_MAX) {
+            if (p_candidate == 0) {
+                return UINT64_MAX;
+            }
+            uint64_t previous_elem_idx = upper.select_one(p_candidate - x_upper);
+            uint64_t prev_upper = previous_elem_idx - (p_candidate - x_upper);
+            return (prev_upper << lower_width) + lower_at(p_candidate - x_upper - 1);
         }
 
         p_candidate += -x_upper;
@@ -63,9 +77,14 @@ struct EliasFanoCoded {
 
         if (min_predecessor_lower_idx == UINT64_MAX) {
             // We did not find a smaller or equal value
-            return p_candidate - 1;
+            if (p_candidate == 0) {
+                return UINT64_MAX;
+            }
+            uint64_t previous_elem_idx = upper.select_one(p_candidate);
+            uint64_t prev_upper = previous_elem_idx - (p_candidate);
+            return (prev_upper << lower_width) + lower_at(p_candidate - 1);
         } else {
-            return min_predecessor_lower_idx;
+            return (x_upper << lower_width) + lower_at(min_predecessor_lower_idx);
         }
     }
 
