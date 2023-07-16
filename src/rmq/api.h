@@ -52,9 +52,9 @@ vector<uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64
     auto index_struct = generate_power_of_two_index_struct(block_mins);
     
     vector<uint64_t> results(queries.size());
-    for (auto query : queries) {
-        auto s = query.first;
-        auto e = query.second;
+    for (uint64_t i = 0; i < queries.size(); ++i) {
+        auto s = queries[i].first;
+        auto e = queries[i].second;
         uint64_t s_block_idx = s / block_size;
         uint64_t e_block_idx = e / block_size;
         uint64_t sl = s % block_size;
@@ -85,7 +85,7 @@ vector<uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64
             }
             res = min_idx;
         }
-        results.emplace_back(res);
+        results[i] = res;
     }
     return results;
 }

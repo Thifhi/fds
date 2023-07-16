@@ -57,20 +57,20 @@ void output_results(vector<uint64_t>& results, ofstream& output_file) {
 
 int main(int argc, char* argv[]) {
     string algorithm = argv[1];
-    string inputFileName = argv[2];
+    string input_file_name = argv[2];
 
     // Open the input file
-    ifstream input_file(inputFileName);
+    ifstream input_file(input_file_name);
     if (!input_file) {
-        std::cerr << "Failed to open input file: " << inputFileName << endl;
+        std::cerr << "Failed to open input file: " << input_file_name << endl;
         return 1;
     }
 
-    string outputFileName = argv[3];
+    string output_file_name = argv[3];
     // Open the output file
-    ofstream output_file(outputFileName);
+    ofstream output_file(output_file_name);
     if (!output_file) {
-        cerr << "Failed to open output file: " << outputFileName << endl;
+        cerr << "Failed to open output file: " << output_file_name << endl;
         input_file.close();
         return 1;
     }
