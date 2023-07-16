@@ -49,10 +49,11 @@ vector<uint64_t> read_pd_queries(ifstream& input_file) {
     return queries;
 }
 
-void output_results(vector<uint64_t>& results, ofstream& output_file) {
-    for (auto result : results) {
+void output_results(tuple<vector<uint64_t>, int64_t, uint64_t>& results, ofstream& output_file, string algorithm) {
+    for (auto result : get<0>(results)) {
         output_file << result << endl;
     }
+    output_file << "RESULT algo=" << algorithm << " name=mustafa_enes_batur time=" << get<1>(results) << " space=" << get<2>(results);
 }
 
 int main(int argc, char* argv[]) {
@@ -76,7 +77,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto data = read_data(input_file);
-    vector<uint64_t> results;
+    tuple<vector<uint64_t>, int64_t, uint64_t> results;
 
     if (algorithm == "pd") {
         auto queries = read_pd_queries(input_file);
@@ -89,7 +90,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    output_results(results, output_file);
+    output_results(results, output_file, algorithm);
 
     // Close the files
     input_file.close();

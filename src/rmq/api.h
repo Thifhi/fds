@@ -1,11 +1,12 @@
 #include <vector>
 #include <cstdint>
+#include <chrono>
 
 #include "rmq.h"
 
 using namespace std;
 
-vector<uint64_t> nlogn_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
+pair<vector<uint64_t>, uint64_t> nlogn_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
     auto index_structure = generate_power_of_two_index_struct(data);
     
     vector<uint64_t> results(queries.size());
@@ -13,10 +14,11 @@ vector<uint64_t> nlogn_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_
         auto res = query_blockwise(query.first, query.second, data, index_structure);
         results.emplace_back(res);
     }
-    return results;
+    return make_pair(results, 0);
 }
 
-vector<uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
+pair<vector<uint64_t>, uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
+    uint64_t bitsize = 0;
     uint64_t block_size = ceil(log2(data.size()) / 4.0);
 
     // Avoid partial blocks
@@ -31,6 +33,9 @@ vector<uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64
         vector<uint64_t> slice = vector<uint64_t>(data.begin() + i * block_size, data.begin() + (i + 1) * block_size);
         auto block_tree = build_cartesian_tree(slice);
         block_cartesian_trees[i] = block_tree;
+    }
+    for (auto& item : block_cartesian_trees) {
+        bitsize += item.size();
     }
 
     vector<uint64_t> block_min_indices(num_blocks);
@@ -48,8 +53,16 @@ vector<uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64
         block_mins[i] = min;
     }
 
+    bitsize += block_min_indices.size() * 64;
+    bitsize += block_min_indices.size() * 64;
+
     auto lookup_table = generate_lookup_table(block_size);
+    for (auto& items : lookup_table) {
+        bitsize += items.second.size() * 64;
+    }
+
     auto index_struct = generate_power_of_two_index_struct(block_mins);
+    bitsize += index_struct.first.size() * 64;
     
     vector<uint64_t> results(queries.size());
     for (uint64_t i = 0; i < queries.size(); ++i) {
@@ -87,18 +100,26 @@ vector<uint64_t> linear_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64
         }
         results[i] = res;
     }
-    return results;
+    return make_pair(results, bitsize);
 }
 
-vector<uint64_t> solve_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries, string algorithm_type = "linear") {
+auto solve_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries, string algorithm_type = "linear") {
+    auto start = std::chrono::high_resolution_clock::now();
+    pair<vector<uint64_t>, uint64_t> res;
+
     if (algorithm_type == "naive") {
         exit(1);
     } else if (algorithm_type == "nlogn") {
-        return nlogn_rmq(data, queries);
+        res = nlogn_rmq(data, queries);
     } else if (algorithm_type == "linear") {
-        return linear_rmq(data, queries);
+        res = linear_rmq(data, queries);
     } else {
         cout << "Unknown algorithm!" << endl;
         exit(1);
     }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    return make_tuple(res.first, duration, res.second);
 }

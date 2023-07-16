@@ -5,11 +5,10 @@
 using namespace std;
 
 struct SelectableBitvector {
-    vector<bool> data;
     vector<uint64_t> table_zeros;
     vector<uint64_t> table_ones;
 
-    SelectableBitvector(vector<bool> data) : data(data) {
+    SelectableBitvector(vector<bool> data) {
         table_zeros.emplace_back(0);
         table_ones.emplace_back(0);
         for (uint64_t i = 0; i < data.size(); ++i) {
@@ -34,6 +33,10 @@ struct SelectableBitvector {
         }
         return table_ones[x];
     }
+
+    uint64_t get_size() {
+        return (table_zeros.size() + table_ones.size()) * 64;
+    }    
 };
 
 struct EliasFanoCoded {
@@ -42,7 +45,7 @@ struct EliasFanoCoded {
         build_lower(data);
     }
 
-    uint64_t predecessor_idx(uint64_t x) {
+    uint64_t predecessor(uint64_t x) {
         uint64_t x_upper = x >> lower_width;
         uint64_t x_lower = x & ((static_cast<uint64_t>(1) << lower_width) - 1);
         uint64_t p_candidate = upper.select_zero(x_upper);
@@ -86,6 +89,10 @@ struct EliasFanoCoded {
         } else {
             return (x_upper << lower_width) + lower_at(min_predecessor_lower_idx);
         }
+    }
+
+    uint64_t get_size() {
+        return upper.get_size() + lower.size() * 1;
     }
 
     private:
