@@ -50,7 +50,9 @@ vector<uint64_t> read_pd_queries(ifstream& input_file) {
 }
 
 void output_results(vector<uint64_t>& results, ofstream& output_file) {
-
+    for (auto result : results) {
+        output_file << result << endl;
+    }
 }
 
 int main(int argc, char* argv[]) {

@@ -1,6 +1,6 @@
 #include <vector>
 #include <cstdint>
-#include <fstream>
+
 #include "predecessor.h"
 
 using namespace std;

@@ -1,9 +1,9 @@
-#include <iostream>
 #include <vector>
-#include <fstream>
-#include <cmath>
+#include <cstdint>
 
 #include "rmq.h"
+
+using namespace std;
 
 vector<uint64_t> nlogn_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
     auto index_structure = generate_power_of_two_index_struct(data);
