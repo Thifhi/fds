@@ -103,14 +103,14 @@ pair<vector<uint64_t>, uint64_t> generate_power_of_two_index_struct(vector<uint6
     return make_pair(power_of_two_index_struct, k);
 }
 
-uint64_t query_blockwise(uint64_t s, uint64_t e, vector<uint64_t>& block_mins, pair<vector<uint64_t>, uint64_t>& index_struct) {
+uint64_t query_blockwise(uint64_t s, uint64_t e, vector<uint64_t>& data, pair<vector<uint64_t>, uint64_t>& index_struct) {
     if (e - s <= 1) {
-        return (block_mins[s] < block_mins[e]) ? s : e;
+        return (data[s] < data[e]) ? s : e;
     }
     auto& index = index_struct.first;
     auto k = index_struct.second;
     uint64_t l = floor(log2(e - s));
     auto first = index[s * k + l - 1];
     auto second = index[(e - pow(2, l) + 1) * k + l - 1];
-    return (block_mins[first] < block_mins[second]) ? first : second;
+    return (data[first] < data[second]) ? first : second;
 }
