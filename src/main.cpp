@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         results = solve_pd(data, queries);
     } else if (algorithm == "rmq") {
         auto queries = read_rmq_queries(input_file);
-        results = solve_rmq(data, queries);
+        results = solve_rmq(data, queries, "linear");
     } else {
         cout << "Unknown algorithm!" << endl;
         exit(1);

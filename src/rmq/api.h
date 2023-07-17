@@ -6,13 +6,27 @@
 
 using namespace std;
 
+pair<vector<uint64_t>, uint64_t> naive(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
+    auto index = in_block_rmq(data);
+
+    vector<uint64_t> results(queries.size());
+    for (uint64_t i = 0; i < queries.size(); ++i) {
+        auto& query = queries[i];
+        auto res = index[get_index_from_s_e(query.first, query.second, data.size())];
+        results[i] = res;
+    }
+    return make_pair(results, 0);
+
+}
+
 pair<vector<uint64_t>, uint64_t> nlogn_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries) {
     auto index_structure = generate_power_of_two_index_struct(data);
     
     vector<uint64_t> results(queries.size());
-    for (auto query : queries) {
+    for (uint64_t i = 0; i < queries.size(); ++i) {
+        auto& query = queries[i];
         auto res = query_blockwise(query.first, query.second, data, index_structure);
-        results.emplace_back(res);
+        results[i] = res;
     }
     return make_pair(results, 0);
 }
@@ -108,7 +122,7 @@ auto solve_rmq(vector<uint64_t>& data, vector<pair<uint64_t, uint64_t>>& queries
     pair<vector<uint64_t>, uint64_t> res;
 
     if (algorithm_type == "naive") {
-        exit(1);
+        res = naive(data, queries);
     } else if (algorithm_type == "nlogn") {
         res = nlogn_rmq(data, queries);
     } else if (algorithm_type == "linear") {
