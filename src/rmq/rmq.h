@@ -36,8 +36,8 @@ uint64_t get_index_from_s_e(uint64_t s, uint64_t e, uint64_t block_size) {
 
 // Naive RMQ that is used for per block queries, or the whole data for a naive implementation
 // Returned data structure contains the RMQ for each (start, end) combination in a flat-vector
-vector<uint64_t> in_block_rmq(vector<uint64_t>& block) {
-    // Block size is tiny with log(n) / 4, so naive implementation should be fast
+vector<uint64_t> naive_rmq(vector<uint64_t>& block) {
+    // Block size is log(n) / 4, so naive implementation should be fast for the linear
     vector<uint64_t> res(block.size() * (block.size() + 1) / 2);
     for (uint64_t i = 0; i < block.size(); ++i) {
         uint64_t min = UINT64_MAX;
@@ -70,7 +70,8 @@ unordered_map<vector<bool>, vector<uint64_t>> generate_lookup_table(uint64_t blo
         if (table.find(tree) != table.end()) {
             continue;
         }
-        auto permutation_rmq = in_block_rmq(permutate);
+        // Calculate in-block RMQ naively since blocks are tiny
+        auto permutation_rmq = naive_rmq(permutate);
         table[tree] = permutation_rmq;
     } while (next_permutation(permutate.begin(), permutate.end()));
     return table;
