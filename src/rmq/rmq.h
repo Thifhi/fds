@@ -7,6 +7,8 @@
 
 using namespace std;
 
+// Builds the per-block cartesian tree using Cartesian Tree Signature encoding from:
+// https://link.springer.com/article/10.1007/s00453-012-9683-x
 vector<bool> build_cartesian_tree(vector<uint64_t>& block) {
     vector<bool> succ_cartesian_tree(2 * block.size());
     uint64_t tree_pointer = 0;
@@ -24,6 +26,7 @@ vector<bool> build_cartesian_tree(vector<uint64_t>& block) {
     return succ_cartesian_tree;
 }
 
+// Map the start - end indices into a single value so that we can use flat vectors instead of nested
 uint64_t get_index_from_s_e(uint64_t s, uint64_t e, uint64_t block_size) {
     uint64_t n = block_size - (s - 1);
     uint64_t m = block_size;
@@ -31,6 +34,8 @@ uint64_t get_index_from_s_e(uint64_t s, uint64_t e, uint64_t block_size) {
     return idx;
 }
 
+// Naive RMQ that is used for per block queries, or the whole data for a naive implementation
+// Returned data structure contains the RMQ for each (start, end) combination in a flat-vector
 vector<uint64_t> in_block_rmq(vector<uint64_t>& block) {
     // Block size is tiny with log(n) / 4, so naive implementation should be fast
     vector<uint64_t> res(block.size() * (block.size() + 1) / 2);
@@ -49,14 +54,19 @@ vector<uint64_t> in_block_rmq(vector<uint64_t>& block) {
     return res;
 }
 
+// Generation of the lookup data structure for per block RMQ with (Tree, start, end) triplet
 unordered_map<vector<bool>, vector<uint64_t>> generate_lookup_table(uint64_t block_size) {
     unordered_map<vector<bool>, vector<uint64_t>> table;
     vector<uint64_t> permutate(block_size); 
+
     for (uint64_t i = 0; i < permutate.size(); ++i) {
         permutate[i] = i;
     }
+
+    // For each possible block permutation
     do {
         auto tree = build_cartesian_tree(permutate);
+        // Tree is not unique, so skip if we already added the same tree before
         if (table.find(tree) != table.end()) {
             continue;
         }
@@ -74,8 +84,11 @@ uint64_t query_inside_block(uint64_t s, uint64_t e, vector<vector<bool>>& block_
     return lookup_table[our_block_tree][get_index_from_s_e(s, e, block_size)];
 }
 
+// Build the nlogn space index data structure
 pair<vector<uint64_t>, uint64_t> generate_power_of_two_index_struct(vector<uint64_t>& data) {
+    // Max look-ahead stored is 2^k
     uint64_t k = ceil(log2(data.size()));
+    // Store the lookup table in a flat vector and access i-th element with i / k + i % k
     vector<uint64_t> power_of_two_index_struct(k * data.size());
 
     // Fill the first entry
@@ -103,6 +116,7 @@ pair<vector<uint64_t>, uint64_t> generate_power_of_two_index_struct(vector<uint6
     return make_pair(power_of_two_index_struct, k);
 }
 
+// Return the arg-min of rmq(s, 2^l) and rmq(e - 2^l + 1, e)
 uint64_t query_blockwise(uint64_t s, uint64_t e, vector<uint64_t>& data, pair<vector<uint64_t>, uint64_t>& index_struct) {
     if (e - s <= 1) {
         return (data[s] < data[e]) ? s : e;
